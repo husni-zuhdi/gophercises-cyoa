@@ -1,5 +1,10 @@
 package cyoa
 
+import (
+	"encoding/json"
+	"io"
+)
+
 // Story map contain a string Intro as key and Chapter struct as value.
 type Story map[string]Chapter
 
@@ -14,4 +19,14 @@ type Chapter struct {
 type Option struct {
 	Text string `json:"text"`
 	Chap string `json:"arc"`
+}
+
+// JsonStory to parse JSON into Story map type.
+func JsonStory(r io.Reader) (Story, error) {
+	d := json.NewDecoder(r)
+	var story Story
+	if err := d.Decode(&story); err != nil {
+		return nil, err
+	}
+	return story, nil
 }
