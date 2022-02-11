@@ -3,7 +3,16 @@ package cyoa
 import (
 	"encoding/json"
 	"io"
+	"net/http"
+	"text/template"
 )
+
+// Initiate template creation when code is running.
+func init() {
+	tpl = template.Must(template.New("").Parse(defaultHandlerTmpl))
+}
+
+var tpl *template.Template
 
 // Story map contain a string Intro as key and Chapter struct as value.
 type Story map[string]Chapter
@@ -19,6 +28,43 @@ type Chapter struct {
 type Option struct {
 	Text string `json:"text"`
 	Chap string `json:"arc"`
+}
+
+// Our default Handler Template.
+var defaultHandlerTmpl = `
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Choose Your Own Adventure</title>
+    </head>
+    <body>
+        <h1>{{.Title}}</h1>
+        {{range .Paragraph}}
+            <p>{{.}}</p>
+        {{end}}
+        <ul>
+        {{range .Options}}
+            <li><a href="/{{.Chap}}">{{.Text}}</a></li>
+        {{end}}
+        </ul>
+    </body>
+</html>
+`
+
+type handler struct {
+	s Story
+}
+
+func NewHandler(s Story) handler {
+	return handler{s}
+}
+
+func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	err := tpl.Execute(w, h.s["intro"])
+	if err != nil {
+		panic(err)
+	}
 }
 
 // JsonStory to parse JSON into Story map type.
