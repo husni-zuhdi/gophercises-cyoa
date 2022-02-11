@@ -7,6 +7,15 @@ Choose Your Own Adventure is (was?) a series of books intended for children wher
 - Turn to page 44 to go up the ladder.
 - Turn to page 87 to venture down the dark passage.
 
+
+## Usage
+
+To run the code, type this in your terminal. (Make sure you have Go already [installed](https://go.dev/doc/install))
+
+`go run cmd/cyoaweb/main.go`
+
+Then open you web browser and visit [localhost:3000](localhost:3000)
+
 ## References
 
 [1] [Gophercises](https://gophercises.com/)
