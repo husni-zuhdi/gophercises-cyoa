@@ -3,7 +3,9 @@ package cyoa
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
+	"strings"
 	"text/template"
 )
 
@@ -61,10 +63,23 @@ func NewHandler(s Story) handler {
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := tpl.Execute(w, h.s["intro"])
-	if err != nil {
-		panic(err)
+	// Check if the path is empty. If empty, set it to intro
+	path := strings.TrimSpace(r.URL.Path)
+	if path == "" || path == "/" {
+		path = "/intro"
 	}
+	// Trim the "/..." from path
+	path = path[1:]
+
+	if chap, ok := h.s[path]; ok {
+		err := tpl.Execute(w, chap)
+		if err != nil {
+			log.Printf("%v", err)
+			http.Error(w, "Something ges wrong... I can't feel it", http.StatusInternalServerError)
+		}
+		return
+	}
+	http.Error(w, "Chapter not found :(", http.StatusNotFound)
 }
 
 // JsonStory to parse JSON into Story map type.

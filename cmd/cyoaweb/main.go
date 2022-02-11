@@ -14,7 +14,7 @@ func main() {
 	filename := flag.String("file", "gopher.json", "The JSON story file you will use")
 	port := flag.Int("port", 3000, "The port to start CYOA web app")
 	flag.Parse()
-	fmt.Printf("Using the story in %s.\n", *filename)
+	fmt.Printf("Using the story in %s and port %d.\n", *filename, *port)
 
 	f, err := os.Open(*filename)
 	if err != nil {
