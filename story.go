@@ -96,29 +96,51 @@ var defaultHandlerTmpl = `
 </html>
 `
 
-type handler struct {
-	s Story
-	t *template.Template
-}
+// Functional Options to create a better handler with
+// adjustable features.
+type HandlerOption func(h *handler)
 
-func NewHandler(s Story, t *template.Template) handler {
-	if t == nil {
-		t = tpl
+// WithTemplate to use other template than the default template.
+func WithTemplate(t *template.Template) HandlerOption {
+	return func(h *handler) {
+		h.t = t
 	}
-	return handler{s, t}
 }
 
-func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func WithPathFn(fn func(r *http.Request) string) HandlerOption {
+	return func(h *handler) {
+		h.pathFn = fn
+	}
+}
+
+func NewHandler(s Story, opts ...HandlerOption) http.Handler {
+	h := handler{s, tpl, defaultPathFn}
+	for _, opt := range opts {
+		opt(&h)
+	}
+	return h
+}
+
+type handler struct {
+	s      Story
+	t      *template.Template
+	pathFn func(r *http.Request) string
+}
+
+func defaultPathFn(r *http.Request) string {
 	// Check if the path is empty. If empty, set it to intro
 	path := strings.TrimSpace(r.URL.Path)
 	if path == "" || path == "/" {
 		path = "/intro"
 	}
 	// Trim the "/..." from path
-	path = path[1:]
+	return path[1:]
+}
 
+func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	path := h.pathFn(r)
 	if chap, ok := h.s[path]; ok {
-		err := tpl.Execute(w, chap)
+		err := h.t.Execute(w, chap)
 		if err != nil {
 			log.Printf("%v", err)
 			http.Error(w, "Something ges wrong... I can't feel it", http.StatusInternalServerError)
