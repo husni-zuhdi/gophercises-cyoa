@@ -98,10 +98,14 @@ var defaultHandlerTmpl = `
 
 type handler struct {
 	s Story
+	t *template.Template
 }
 
-func NewHandler(s Story) handler {
-	return handler{s}
+func NewHandler(s Story, t *template.Template) handler {
+	if t == nil {
+		t = tpl
+	}
+	return handler{s, t}
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
